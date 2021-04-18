@@ -1,6 +1,8 @@
 package socialmedia;
 
+import javax.swing.*;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * BadSocialMedia is a minimally compiling, but non-functioning implementor of
@@ -11,7 +13,23 @@ import java.io.IOException;
  */
 public class SocialMedia implements SocialMediaPlatform {
 
-	
+	private ArrayList<Account> accounts = new ArrayList<>();
+	private ArrayList<Post> posts = new ArrayList<>();
+	private int nextpid = 0;
+	private int nextuid = 0;
+
+	public int finduid (String handle) {
+		int newpostuid = -1;
+		for (Account a: accounts) {
+			if (a.handle().equals(handle)) {
+				newpostuid = a.uID();
+				return newpostuid;
+			}
+		}
+		return newpostuid;
+	}
+
+
 	@Override
 	public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
 		// TODO Auto-generated method stub
@@ -57,8 +75,23 @@ public class SocialMedia implements SocialMediaPlatform {
 
 	@Override
 	public int createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
+		//maybe add error msg and repeat later if needed
 		// TODO Auto-generated method stub
-		return 0;
+		int newpostuid = finduid(handle);
+		if (message.length() > 100) {
+			return 0;
+		} else if (newpostuid == -1) {
+			return 0;
+		} else {
+			Post newpost = new Post();
+			int newpostpid = nextpid;
+			nextpid += 1;
+			newpost.setpID(newpostpid);
+			newpost.setuID(newpostuid);
+			newpost.setContent(message);
+			posts.add(newpost);
+			return newpostpid;
+		}
 	}
 
 	@Override
