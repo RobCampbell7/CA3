@@ -10,6 +10,12 @@ public class Post{
 
     protected String content;
 
+    protected boolean exists;
+
+    private Comment[] comments;
+
+    private Endorsement[] endorsements;
+
     public Post(int pID, int uID, String content){
         this.pID = pID;
         this.uID = uID;
@@ -22,8 +28,13 @@ public class Post{
     public int pID(){
         return pID;
     }
-
     public String content(){
         return content;
+    }
+    public boolean exists(){
+        return this.exists;
+    }
+    public void delete(){
+        this.exists = false;
     }
 }

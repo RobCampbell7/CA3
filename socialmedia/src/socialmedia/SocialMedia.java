@@ -11,6 +11,7 @@ import java.io.IOException;
  */
 public class SocialMedia implements SocialMediaPlatform {
 
+	
 	@Override
 	public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
 		// TODO Auto-generated method stub
@@ -71,6 +72,7 @@ public class SocialMedia implements SocialMediaPlatform {
 	public int commentPost(String handle, int id, String message) throws HandleNotRecognisedException,
 			PostIDNotRecognisedException, NotActionablePostException, InvalidPostException {
 		// TODO Auto-generated method stub
+		// should add comment to list within post object, as well as total post list.
 		return 0;
 	}
 
