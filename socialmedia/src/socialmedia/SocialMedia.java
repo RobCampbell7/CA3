@@ -19,17 +19,34 @@ public class SocialMedia implements SocialMediaPlatform {
 	private int nextuid = 0;
 
 	public String finduid (String handle) {
-		String newpostuid = "-1";
+		String id = "-1";
 		for (Account a: accounts) {
 			if (a.handle().equals(handle)) {
-				newpostuid = a.uID();
-				return newpostuid;
+				id = a.uID();
+				break;
 			}
 		}
-		return newpostuid;
+		return id;
 	}
+	public Post findPostFromID(String id){
+		Post foundPost;
+		String[] idArr = id.split("-");
+		Post[] postArr = posts.toArray();
 
-
+		for (String s : idArr){
+			for (Post post : postArr){
+				if (post.id().equals(s)){
+					if (s.equals(idArr[-1])){
+						foundPost = post;
+						postArr = null;
+					}
+				}else{
+					postArr = post.comments.toArray();
+				}
+			}
+		}
+		return foundPost;
+	}
 	@Override
 	public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
 		// TODO Auto-generated method stub
@@ -95,10 +112,27 @@ public class SocialMedia implements SocialMediaPlatform {
 	}
 
 	@Override
-	public int endorsePost(String handle, int id)
+	public String endorsePost(String handle, int id)
 			throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException {
 		// TODO Auto-generated method stub
-		return 0;
+		String newpostuid = finduid(handle);
+		Post post = findPostFromID(id);
+		if (message.length() > 100) {
+			return "0";
+		} else if (newpostuid.equals("-1")) {
+			return "0";
+		} else if (post.isNull()){
+			return "0";
+		} else {
+			String newID = Integer.toString(post.nextEID);
+			post.nextEID += 1;
+			
+			Endorsement newEnd = new Endorsement();
+			newEnd.setID(newID);
+			newEnd.setparentID(id);
+			newEnd.setuID(newpostuid);
+			post.addendorsement(newEnd);
+		}
 	}
 
 	@Override
@@ -107,18 +141,24 @@ public class SocialMedia implements SocialMediaPlatform {
 		// TODO Auto-generated method stub
 		// should add comment to list within post object, as well as total post list.
 		String newpostuid = finduid(handle);
+		Post post = findPostFromID(id);
 		if (message.length() > 100) {
 			return "0";
 		} else if (newpostuid.equals("-1")) {
 			return "0";
+		} else if (post.isNull()){
+			return "0";
 		} else {
+			String newCID = Integer.toString(post.nextCID);
 			Comment newcomment = new Comment();
-			String newcommentid = Integer.toString();
-			nextpid += 1;
-			newpost.setpID(newpostpid);
-			newpost.setuID(newpostuid);
-			newpost.setContent(message);
-			posts.add(newpost);
+
+			newcomment.setparentID(id);
+			newcomment.setid(newCID);
+			newcomment.setContent(message);
+
+			post.addcomment(newcomment);
+
+			post.nextCID += 1;
 			return newpostpid;
 		}
 	}

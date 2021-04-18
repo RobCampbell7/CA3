@@ -5,8 +5,24 @@ import java.util.ArrayList;
 
 public class Post{
 
-    public void setpID(String pID) {
-        this.pID = pID;
+    protected String id;
+
+    protected int nextCID = 0;
+
+    protected int nextEID = 0;
+
+    protected String uID;
+
+    protected String content;
+
+    protected boolean exists;
+
+    private ArrayList<Comment> comments = new ArrayList<>();
+
+    private ArrayList<Endorsement> endorsements = new ArrayList<>();
+
+    public void setid(String id) {
+        this.id = id;
     }
 
     public void setuID(String uID) {
@@ -21,20 +37,8 @@ public class Post{
         this.exists = exists;
     }
 
-    protected String pID;
-
-    protected String uID;
-
-    protected String content;
-
-    protected boolean exists;
-
-    private ArrayList<Comment> comments = new ArrayList<>();
-
-    private ArrayList<Endorsement> endorsements = new ArrayList<>();
-
-    public Post(String pID, String uID, String content){
-        this.pID = pID;
+    public Post(String id, String uID, String content){
+        this.id = id;
         this.uID = uID;
         this.content = content;
     }
@@ -44,8 +48,8 @@ public class Post{
     public String uID(){
         return uID;
     }
-    public String pID(){
-        return pID;
+    public String id(){
+        return id;
     }
     public String content(){
         return content;
