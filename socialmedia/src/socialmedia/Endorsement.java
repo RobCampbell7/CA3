@@ -2,12 +2,21 @@ package socialmedia;
 
 import java.io.IOException;
 
-public class Endorsement extends Comment{
+public class Endorsement extends Post{
 
-    public Endorsement(int pID, int uID, String content, Post prevPost){
-        super(pID, uID, content, prevPost);
+    private String eID;
+
+    public String geteID() {
+        return eID;
     }
-    public String endorsedContent(){
-        return prevPost.content();
+
+    public void seteID(String eID) {
+        this.eID = eID;
     }
+
+    public Endorsement(String pID, String uID, String content){
+        super(pID, uID, content);
+    }
+
+    public Endorsement() {}
 }

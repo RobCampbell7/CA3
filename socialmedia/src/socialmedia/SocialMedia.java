@@ -18,8 +18,8 @@ public class SocialMedia implements SocialMediaPlatform {
 	private int nextpid = 0;
 	private int nextuid = 0;
 
-	public int finduid (String handle) {
-		int newpostuid = -1;
+	public String finduid (String handle) {
+		String newpostuid = "-1";
 		for (Account a: accounts) {
 			if (a.handle().equals(handle)) {
 				newpostuid = a.uID();
@@ -74,17 +74,17 @@ public class SocialMedia implements SocialMediaPlatform {
 	}
 
 	@Override
-	public int createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
+	public String createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
 		//maybe add error msg and repeat later if needed
 		// TODO Auto-generated method stub
-		int newpostuid = finduid(handle);
+		String newpostuid = finduid(handle);
 		if (message.length() > 100) {
-			return 0;
-		} else if (newpostuid == -1) {
-			return 0;
+			return "0";
+		} else if (newpostuid.equals("-1")) {
+			return "0";
 		} else {
 			Post newpost = new Post();
-			int newpostpid = nextpid;
+			String newpostpid = Integer.toString(nextpid);
 			nextpid += 1;
 			newpost.setpID(newpostpid);
 			newpost.setuID(newpostuid);
@@ -102,11 +102,25 @@ public class SocialMedia implements SocialMediaPlatform {
 	}
 
 	@Override
-	public int commentPost(String handle, int id, String message) throws HandleNotRecognisedException,
+	public String commentPost(String handle, String id, String message) throws HandleNotRecognisedException,
 			PostIDNotRecognisedException, NotActionablePostException, InvalidPostException {
 		// TODO Auto-generated method stub
 		// should add comment to list within post object, as well as total post list.
-		return 0;
+		String newpostuid = finduid(handle);
+		if (message.length() > 100) {
+			return "0";
+		} else if (newpostuid.equals("-1")) {
+			return "0";
+		} else {
+			Comment newcomment = new Comment();
+			String newcommentid = Integer.toString();
+			nextpid += 1;
+			newpost.setpID(newpostpid);
+			newpost.setuID(newpostuid);
+			newpost.setContent(message);
+			posts.add(newpost);
+			return newpostpid;
+		}
 	}
 
 	@Override

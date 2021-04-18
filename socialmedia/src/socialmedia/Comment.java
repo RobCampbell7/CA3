@@ -4,20 +4,22 @@ import java.io.IOException;
 
 public class Comment extends Post{
 
-    protected Post prevPost;
-    
-    public Comment(int pID, int uID, String content, Post prevPost){
+    private String cID;
+
+    public String getcID() {
+        return cID;
+    }
+
+    public void setcID(String cID) {
+        this.cID = cID;
+    }
+
+
+    public Comment(String pID, String uID, String content){
         super(pID, uID, content);
-        this.prevPost = prevPost;
     }
+
+    public Comment() {}
     
-    public int uID(){
-        return uID;
-    }
-    public int prevPID(){
-        return prevPost.pID();
-    }
-    public String content(){
-        return content;
-    }
+
 }

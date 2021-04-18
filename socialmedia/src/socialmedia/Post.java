@@ -5,11 +5,11 @@ import java.util.ArrayList;
 
 public class Post{
 
-    public void setpID(int pID) {
+    public void setpID(String pID) {
         this.pID = pID;
     }
 
-    public void setuID(int uID) {
+    public void setuID(String uID) {
         this.uID = uID;
     }
 
@@ -21,9 +21,9 @@ public class Post{
         this.exists = exists;
     }
 
-    protected int pID;
+    protected String pID;
 
-    protected int uID;
+    protected String uID;
 
     protected String content;
 
@@ -33,7 +33,7 @@ public class Post{
 
     private ArrayList<Endorsement> endorsements = new ArrayList<>();
 
-    public Post(int pID, int uID, String content){
+    public Post(String pID, String uID, String content){
         this.pID = pID;
         this.uID = uID;
         this.content = content;
@@ -41,10 +41,10 @@ public class Post{
 
     public Post() {}
 
-    public int uID(){
+    public String uID(){
         return uID;
     }
-    public int pID(){
+    public String pID(){
         return pID;
     }
     public String content(){
