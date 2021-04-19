@@ -17,9 +17,9 @@ public class Post{
 
     protected boolean exists;
 
-    private ArrayList<Comment> comments = new ArrayList<>();
+    protected ArrayList<Comment> comments = new ArrayList<>();
 
-    private ArrayList<Endorsement> endorsements = new ArrayList<>();
+    protected ArrayList<Endorsement> endorsements = new ArrayList<>();
 
     public void setid(String id) {
         this.id = id;
@@ -81,5 +81,21 @@ public class Post{
 
     public ArrayList<Endorsement> getEndorsements() {
         return endorsements;
+    }
+
+    public int getNextCID() {
+        return nextCID;
+    }
+
+    public void setNextCID(int nextCID) {
+        this.nextCID = nextCID;
+    }
+
+    public int getNextEID() {
+        return nextEID;
+    }
+
+    public void setNextEID(int nextEID) {
+        this.nextEID = nextEID;
     }
 }
