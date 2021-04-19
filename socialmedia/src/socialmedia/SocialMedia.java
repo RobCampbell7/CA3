@@ -255,31 +255,69 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public int getNumberOfAccounts() {
 		// TODO Auto-generated method stub
-		return 0;
+		int accountNo = 0;
+		for (Account user : accounts){
+			if (user != null){
+				accountNo += 1;
+			}
+		}
+		return accountNo;
 	}
 
 	@Override
 	public int getTotalOriginalPosts() {
 		// TODO Auto-generated method stub
-		return 0;
+		int postNo = 0;
+		for (Post post : posts){
+			postNo += 1;
+		}
+		return postNo;
 	}
 
 	@Override
 	public int getTotalEndorsmentPosts() {
 		// TODO Auto-generated method stub
-		return 0;
+		int endorsementNo = 0;
+		
+		for (Post post : posts){
+			if (post != null){
+				for (Endorsement e : post){
+					if (e != null){
+						endorsementNo += 1;
+					}
+				}
+			}
+		}
+		return endorsementNo;
 	}
 
+	public countChildren(Post post){
+		int commentNo = 1;
+		if (c.comments.length() != 0){
+			for (Comment c : post.comments){
+				if (c != null){
+					commentNo += countChildren(c);
+				}
+			}
+		}
+		return commentNo;
+	}
 	@Override
 	public int getTotalCommentPosts() {
 		// TODO Auto-generated method stub
-		return 0;
+		int commentNo = 0;
+
+		for (Post post : posts){
+			if (post != null){
+				commentNo += countChildren(post);
+			}
+		}
+		return commentNo;
 	}
 
 	@Override
 	public int getMostEndorsedPost() {
 		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	@Override
