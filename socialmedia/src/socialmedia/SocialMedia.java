@@ -21,12 +21,22 @@ public class SocialMedia implements SocialMediaPlatform {
 	public int finduid (String handle) {
 		int id = -1;
 		for (Account a: accounts) {
-			if (a.handle().equals(handle)) {
-				id = a.uID();
+			if (a != null && a.getHandle().equals(handle)) {
+				id = a.getUID();
 				break;
 			}
 		}
 		return id;
+	}
+	public Account findAccountFromID(int id){
+		Account foundAccount = null;
+		for (Account user : accounts){
+			if (user != null && user.getUID()){
+				foundAccount = user;
+				break;
+			}
+		}
+		return foundAccount;
 	}
 	public boolean uniqueHandle(String handle){
 		boolean unique = true;
@@ -100,27 +110,51 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public void removeAccount(int id) throws AccountIDNotRecognisedException {
 		// TODO Auto-generated method stub
-		
+		Account oldAccount = null;
+		for (Account user : accounts){
+			if (user != null && user.getUID() == id){
+				oldAccount = user;
+				break;
+			}
+		}
+		accounts.remove(oldAccount);
 	}
 
 	@Override
 	public void removeAccount(String handle) throws HandleNotRecognisedException {
 		// TODO Auto-generated method stub
 		int uid = finduid(handle);
-		removeAccount(uid);
+		if (uid == -1){
+			// Raises HandleNotRecognisedException
+		}else{
+			removeAccount(uid);
+		}
 	}
 
 	@Override
 	public void changeAccountHandle(String oldHandle, String newHandle)
 			throws HandleNotRecognisedException, IllegalHandleException, InvalidHandleException {
-		// TODO Auto-generated method stub
-
+		int uid = finduid(oldHandle);
+		if (uid == -1){
+			// Will call HandleNotRecognisedException
+		}else if (newHandle.length() == 0 || newHandle.length() > 30 || newHandle.contains(" ")){
+			// Will call InvalidHandleException
+		}else if (!uniqueHandle(newHandle)){
+			// Will call IllegalHandleException
+		}else{
+			Account userToAlter = findAccountFromID(uid);
+			userToAlter.setHandle(newHandle);
+		}
 	}
 
 	@Override
 	public void updateAccountDescription(String handle, String description) throws HandleNotRecognisedException {
-		// TODO Auto-generated method stub
-
+		int uid = finduid(handle);
+		if (uid == -1){
+		}else{
+			Account userToAlter = findAccountFromID(uid);
+			userToAlter.setDescription(description);
+		}
 	}
 
 	@Override
@@ -132,7 +166,6 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public String createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
 		//maybe add error msg and repeat later if needed
-		// TODO Auto-generated method stub
 		String newpostuid = finduid(handle);
 		if (message.length() > 100) {
 			return "0";
@@ -153,14 +186,13 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public String endorsePost(String handle, int id)
 			throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException {
-		// TODO Auto-generated method stub
 		int newpostuid = finduid(handle);
 		Post post = findPostFromID(id);
-		if (message.length() > 100) {
-			return "0";
-		} else if (newpostuid == -1) {
+		if (newpostuid == -1) {
+			// Will call HandleNotRecognisedException
 			return "0";
 		} else if (post.isNull()){
+			// Will call PostIDNotRecognisedException
 			return "0";
 		} else {
 			String newID = Integer.toString(post.nextEID);
