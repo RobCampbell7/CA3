@@ -49,24 +49,30 @@ public class SocialMedia implements SocialMediaPlatform {
 		return unique;
 	}
 	public Post findPostFromID(String id){
-		Post foundPost;
+		Post foundPost = new Post();
 		String[] idArr = id.split("-");
-		Post[] postArr = posts.toArray();
+		ArrayList<Post> postArr = posts;
 
 		for (String s : idArr){
 			for (Post post : postArr){
+				//comparing each post id to the currently selected part of the parent id
 				if (post.id().equals(s)){
+					//if the ids match checks
 					if (s.equals(idArr[-1])){
+						//if this is the last part of parent id then it collects the requested post
 						foundPost = post;
-						postArr = null;
+						// then returns the post this also breaks all loops and exits the function
+						return foundPost;
+					} else{
+						//change the array of posts to the array of comments inside the found matching post
+						postArr = post.getComments();
 					}
-				}else{
-					postArr = post.comments.toArray();
 				}
 			}
 		}
 		return foundPost;
 	}
+
 	@Override
 	public String createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
 		if (handle.length() == 0 || handle.length() > 30 || handle.contains(" ")){
@@ -166,43 +172,45 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public String createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
 		//maybe add error msg and repeat later if needed
-		String newpostuid = finduid(handle);
+		String newpostuid = Integer.toString(finduid(handle));
 		if (message.length() > 100) {
 			return "0";
 		} else if (newpostuid.equals("-1")) {
 			return "0";
 		} else {
 			Post newpost = new Post();
-			String newpostpid = Integer.toString(nextpid);
+			String newpostid = Integer.toString(nextpid);
 			nextpid += 1;
-			newpost.setpID(newpostpid);
+			newpost.setid(newpostid);
 			newpost.setuID(newpostuid);
 			newpost.setContent(message);
 			posts.add(newpost);
-			return newpostpid;
+			return newpostid;
 		}
 	}
 
 	@Override
 	public String endorsePost(String handle, int id)
 			throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException {
-		int newpostuid = finduid(handle);
-		Post post = findPostFromID(id);
-		if (newpostuid == -1) {
+		String newpostuid = Integer.toString(finduid(handle));
+		String parentid = Integer.toString(id);
+		Post post = findPostFromID(parentid);
+		if (newpostuid.equals("-1")) {
 			// Will call HandleNotRecognisedException
 			return "0";
-		} else if (post.isNull()){
+		} else if (post.exists()){
 			// Will call PostIDNotRecognisedException
 			return "0";
 		} else {
 			String newID = Integer.toString(post.nextEID);
 			post.nextEID += 1;
-			
+
 			Endorsement newEnd = new Endorsement();
-			newEnd.setID(newID);
-			newEnd.setparentID(id);
+			newEnd.setid(newID);
+			newEnd.setParentID(parentid);
 			newEnd.setuID(newpostuid);
 			post.addendorsement(newEnd);
+			return newID;
 		}
 	}
 
@@ -211,13 +219,13 @@ public class SocialMedia implements SocialMediaPlatform {
 			PostIDNotRecognisedException, NotActionablePostException, InvalidPostException {
 		// TODO Auto-generated method stub
 		// should add comment to list within post object, as well as total post list.
-		String newpostuid = finduid(handle);
+		String newpostuid = Integer.toString(finduid(handle));
 		Post post = findPostFromID(id);
 		if (message.length() > 100) {
 			return "0";
 		} else if (newpostuid.equals("-1")) {
 			return "0";
-		} else if (post.isNull()){
+		} else if (post.exists()){
 			return "0";
 		} else {
 			String newCID = Integer.toString(post.nextCID);
@@ -229,7 +237,7 @@ public class SocialMedia implements SocialMediaPlatform {
 			newcomment.setContent(message);
 
 			post.addcomment(newcomment);
-			return newpostpid;
+			return newCID;
 		}
 	}
 
@@ -291,11 +299,14 @@ public class SocialMedia implements SocialMediaPlatform {
 		return endorsementNo;
 	}
 
-	public countChildren(Post post){
+	public int countChildren(Post post){
 		int commentNo = 1;
-		if (c.comments.length() != 0){
-			for (Comment c : post.comments){
+		//changed this it now says if the post in question has comments
+		if (post.getComments().size() != 0){
+			// then for each comment in that post's array of comments
+			for (Comment c : post.getComments()){
 				if (c != null){
+					//recursively add to the commentNo the number of comments to the current comment if that comment has no children this will just be 1
 					commentNo += countChildren(c);
 				}
 			}

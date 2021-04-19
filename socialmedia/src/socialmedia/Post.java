@@ -75,5 +75,11 @@ public class Post{
         this.endorsements.remove(oldendorsement);
     }
 
+    public ArrayList<Comment> getComments() {
+        return comments;
+    }
 
+    public ArrayList<Endorsement> getEndorsements() {
+        return endorsements;
+    }
 }

@@ -12,6 +12,14 @@ public class Endorsement extends Post{
         return id;
     }
 
+    public String getParentID() {
+        return parentID;
+    }
+
+    public void setParentID(String parentID) {
+        this.parentID = parentID;
+    }
+
     public void setid(String id) {
         this.id = id;
     }
