@@ -18,8 +18,8 @@ public class SocialMedia implements SocialMediaPlatform {
 	private int nextpid = 0;
 	private int nextuid = 0;
 
-	public String finduid (String handle) {
-		String id = "-1";
+	public int finduid (String handle) {
+		int id = -1;
 		for (Account a: accounts) {
 			if (a.handle().equals(handle)) {
 				id = a.uID();
@@ -27,6 +27,16 @@ public class SocialMedia implements SocialMediaPlatform {
 			}
 		}
 		return id;
+	}
+	public boolean uniqueHandle(String handle){
+		boolean unique = true;
+		for (Account user : accounts){
+			if (user.getHandle() == handle){
+				unique = false;
+				break;
+			}
+		}
+		return unique;
 	}
 	public Post findPostFromID(String id){
 		Post foundPost;
@@ -48,27 +58,56 @@ public class SocialMedia implements SocialMediaPlatform {
 		return foundPost;
 	}
 	@Override
-	public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
-		// TODO Auto-generated method stub
-		return 0;
+	public String createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
+		if (handle.length() == 0 || handle.length() > 30 || handle.contains(" ")){
+			// Will call InvalidHandleException
+			return "0";
+		}else if (!uniqueHandle(handle)){
+			// Will call IllegalHandleException
+			return "0";
+		}else{
+			Account newAccount = new Account();
+			newAccount.setUID(Integer.toString(nextuid));
+			newAccount.setHandle(handle);
+
+			nextuid += 1;
+			accounts.add(newAccount);
+			return newAccount.getUID();
+		}
 	}
 
 	@Override
-	public int createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
+	public String createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
 		// TODO Auto-generated method stub
-		return 0;
+		if (handle.length() == 0 || handle.length() > 30 || handle.contains(" ")){
+			// Will call InvalidHandleException
+			return "0";
+		}else if (!uniqueHandle(handle)){
+			// Will call IllegalHandleException
+			return "0";
+		}else{
+			Account newAccount = new Account();
+			newAccount.setUID(Integer.toString(nextuid));
+			newAccount.setHandle(handle);
+			newAccount.setDescription(description);
+
+			nextuid += 1;
+			accounts.add(newAccount);
+			return newAccount.getUID();
+		}
 	}
 
 	@Override
 	public void removeAccount(int id) throws AccountIDNotRecognisedException {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public void removeAccount(String handle) throws HandleNotRecognisedException {
 		// TODO Auto-generated method stub
-
+		int uid = finduid(handle);
+		removeAccount(uid);
 	}
 
 	@Override
@@ -115,11 +154,11 @@ public class SocialMedia implements SocialMediaPlatform {
 	public String endorsePost(String handle, int id)
 			throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException {
 		// TODO Auto-generated method stub
-		String newpostuid = finduid(handle);
+		int newpostuid = finduid(handle);
 		Post post = findPostFromID(id);
 		if (message.length() > 100) {
 			return "0";
-		} else if (newpostuid.equals("-1")) {
+		} else if (newpostuid == -1) {
 			return "0";
 		} else if (post.isNull()){
 			return "0";
@@ -150,15 +189,14 @@ public class SocialMedia implements SocialMediaPlatform {
 			return "0";
 		} else {
 			String newCID = Integer.toString(post.nextCID);
-			Comment newcomment = new Comment();
+			post.nextCID += 1;
 
+			Comment newcomment = new Comment();
 			newcomment.setparentID(id);
 			newcomment.setid(newCID);
 			newcomment.setContent(message);
 
 			post.addcomment(newcomment);
-
-			post.nextCID += 1;
 			return newpostpid;
 		}
 	}

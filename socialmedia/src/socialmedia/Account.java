@@ -4,13 +4,13 @@ import java.io.IOException;
 
 public class Account {
     
-    private String uID;
+    private int uID;
 
     private String handle;
 
     private String description;
 
-    public Account(String uID, String handle, String description){
+    public Account(int uID, String handle, String description){
         assert (description.length() < 100) : "Description is too long";
 
         this.uID = uID;
@@ -18,13 +18,29 @@ public class Account {
         this.description = description;
     }
 
-    public String uID(){
-        return uID;
+    public Account(){}
+
+    public int getUID() {
+        return this.uID;
     }
-    public String handle(){
-        return handle;
+
+    public void setUID(int uID) {
+        this.uID = uID;
     }
-    public String description(){
-        return description;
+
+    public String getHandle() {
+        return this.handle;
+    }
+
+    public void setHandle(String handle) {
+        this.handle = handle;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
