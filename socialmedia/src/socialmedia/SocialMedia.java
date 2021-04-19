@@ -84,7 +84,8 @@ public class SocialMedia implements SocialMediaPlatform {
 	 * i already have some idea how i would do this but i hesitate to make anymore right now incase we find it completely unnecessary
 	 * additionally at some point i wish to check to ensure that changing the array the loop is acting upon does indeed also reset the loop and not continue from the same element in the new array because otherwise we will have to change these functions accordingly to deal with this
      */
-/*	public Post findPostFromID(String id) {
+    /*
+public Post findPostFromID(String id) {
 		Post foundPost = new Post();
 		String[] idArr = id.split("-");
 		ArrayList<Post> postArr = posts;
@@ -122,7 +123,9 @@ public class SocialMedia implements SocialMediaPlatform {
 			}
 		}
 		return foundComment;
-	}*/
+	}
+     */
+
     @Override
     public String createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
         if (handle.length() == 0 || handle.length() > 30 || handle.contains(" ")) {
