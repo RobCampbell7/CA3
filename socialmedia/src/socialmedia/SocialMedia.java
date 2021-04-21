@@ -1,6 +1,6 @@
 package socialmedia;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -454,19 +454,51 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
     public void erasePlatform() {
         // TODO Auto-generated method stub
+        posts = new ArrayList<>();
+        accounts = new ArrayList<>();
+        orphanedComments = new ArrayList<>();
+        nextuid = 0;
+        nextpid = 0;
 
     }
 
     @Override
     public void savePlatform(String filename) throws IOException {
         // TODO Auto-generated method stub
+        Platform platform = new Platform();
+        platform.setAccounts(accounts);
+        platform.setPosts(posts);
+        platform.setOrphanedComments(orphanedComments);
+        platform.setNextpid(nextpid);
+        platform.setNextuid(nextuid);
+        //creating file for the platform
+        String platformfilename = filename + ".ser";
+        FileOutputStream storeplatform = new FileOutputStream(platformfilename);
+        //creating the file writer
+        ObjectOutputStream serialiseObject = new ObjectOutputStream(storeplatform);
+        //writing to file to store the platform
+        serialiseObject.writeObject(platform);
+        //close file
+        serialiseObject.close();
+        storeplatform.close();
 
     }
 
     @Override
     public void loadPlatform(String filename) throws IOException, ClassNotFoundException {
         // TODO Auto-generated method stub
-
+        //accessing the file
+        String filenameser = filename + ".ser";
+        FileInputStream getPlatform = new FileInputStream(filenameser);
+        //creating file reader
+        ObjectInputStream readPlatform = new ObjectInputStream(getPlatform);
+        //reading object from file
+        Platform loadedPlatform = (Platform) readPlatform.readObject();
+        posts.addAll(loadedPlatform.getPosts());
+        accounts.addAll(loadedPlatform.getAccounts());
+        orphanedComments.addAll(loadedPlatform.getOrphanedComments());
+        nextpid = loadedPlatform.getNextpid();
+        nextuid = loadedPlatform.getNextuid();
     }
 
 }

@@ -1,9 +1,10 @@
 package socialmedia;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Post {
+public class Post implements Serializable {
 
     protected String id;
 
