@@ -156,7 +156,7 @@ public interface MiniSocialMediaPlatform extends Serializable {
 	 * @throws InvalidPostException         if the comment message is empty or has
 	 *                                      more than 100 characters.
 	 */
-	int commentPost(String handle, int id, String message) throws HandleNotRecognisedException,
+	String commentPost(String handle, String id, String message) throws HandleNotRecognisedException,
 			PostIDNotRecognisedException, NotActionablePostException, InvalidPostException;
 
 	/**

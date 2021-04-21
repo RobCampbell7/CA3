@@ -33,7 +33,7 @@ public class SocialMedia implements SocialMediaPlatform {
     public Account findAccountFromID(int id) {
         Account foundAccount = null;
         for (Account user : accounts) {
-            if (user != null && user.getUID()) {
+            if (user != null && user.getUID() == id) {
                 foundAccount = user;
                 break;
             }
@@ -52,30 +52,30 @@ public class SocialMedia implements SocialMediaPlatform {
         return unique;
     }
 
-    public Post findPostFromID(String id) {
-        Post foundPost = new Post();
-        String[] idArr = id.split("-");
-        ArrayList<Post> postArr = posts;
+    // public Post findPostFromID(String id) {
+    //     Post foundPost = new Post();
+    //     String[] idArr = id.split("-");
+    //     ArrayList<Post> postArr = posts;
 
-        for (String s : idArr) {
-            for (Post post : postArr) {
-                //comparing each post id to the currently selected part of the parent id
-                if (post.id().equals(s)) {
-                    //if the ids match checks
-                    if (s.equals(idArr[-1])) {
-                        //if this is the last part of parent id then it collects the requested post
-                        foundPost = post;
-                        // then returns the post this also breaks all loops and exits the function
-                        return foundPost;
-                    } else {
-                        //change the array of posts to the array of comments inside the found matching post
-                        postArr = post.getComments();
-                    }
-                }
-            }
-        }
-        return foundPost;
-    }
+    //     for (String s : idArr) {
+    //         for (Post post : postArr) {
+    //             //comparing each post id to the currently selected part of the parent id
+    //             if (post.id().equals(s)) {
+    //                 //if the ids match checks
+    //                 if (s.equals(idArr[-1])) {
+    //                     //if this is the last part of parent id then it collects the requested post
+    //                     foundPost = post;
+    //                     // then returns the post this also breaks all loops and exits the function
+    //                     return foundPost;
+    //                 } else {
+    //                     //change the array of posts to the array of comments inside the found matching post
+    //                     postArr = post.getComments();
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return foundPost;
+    // }
 
 
     /**
@@ -174,16 +174,16 @@ public class SocialMedia implements SocialMediaPlatform {
 
 
     @Override
-    public String createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
+    public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
         if (handle.length() == 0 || handle.length() > 30 || handle.contains(" ")) {
             // Will call InvalidHandleException
-            return "0";
+            return 0;
         } else if (!uniqueHandle(handle)) {
             // Will call IllegalHandleException
-            return "0";
+            return 0;
         } else {
             Account newAccount = new Account();
-            newAccount.setUID(Integer.toString(nextuid));
+            newAccount.setUID(nextuid);
             newAccount.setHandle(handle);
 
             nextuid += 1;
@@ -193,17 +193,17 @@ public class SocialMedia implements SocialMediaPlatform {
     }
 
     @Override
-    public String createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
+    public int createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
         // TODO Auto-generated method stub
         if (handle.length() == 0 || handle.length() > 30 || handle.contains(" ")) {
             // Will call InvalidHandleException
-            return "0";
+            return 0;
         } else if (!uniqueHandle(handle)) {
             // Will call IllegalHandleException
-            return "0";
+            return 0;
         } else {
             Account newAccount = new Account();
-            newAccount.setUID(Integer.toString(nextuid));
+            newAccount.setUID(nextuid);
             newAccount.setHandle(handle);
             newAccount.setDescription(description);
 
@@ -233,7 +233,14 @@ public class SocialMedia implements SocialMediaPlatform {
         if (uid == -1) {
             // Raises HandleNotRecognisedException
         } else {
-            removeAccount(uid);
+            Account oldAccount = null;
+            for (Account user : accounts) {
+                if (user != null && user.getHandle() == handle) {
+                    oldAccount = user;
+                    break;
+                }
+            }
+            accounts.remove(oldAccount);
         }
     }
 
@@ -294,7 +301,8 @@ public class SocialMedia implements SocialMediaPlatform {
             throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException {
         String newpostuid = Integer.toString(finduid(handle));
         String parentid = Integer.toString(id);
-        Post post = findPostFromID(parentid);
+        Post post = fromID("Post", parentid, "FIND");
+
         if (newpostuid.equals("-1")) {
             // Will call HandleNotRecognisedException
             return 0;
@@ -321,7 +329,7 @@ public class SocialMedia implements SocialMediaPlatform {
         // TODO Auto-generated method stub
         // should add comment to list within post object, as well as total post list.
         String newpostuid = Integer.toString(finduid(handle));
-        Post post = findPostFromID(id);
+        Post post = fromID("Post", id, "FIND");
         if (message.length() > 100) {
             return "0";
         } else if (newpostuid.equals("-1")) {
@@ -393,7 +401,7 @@ public class SocialMedia implements SocialMediaPlatform {
 
         for (Post post : posts) {
             if (post != null) {
-                for (Endorsement e : post) {
+                for (Endorsement e : post.getEndorsements()) {
                     if (e != null) {
                         endorsementNo += 1;
                     }
@@ -433,6 +441,7 @@ public class SocialMedia implements SocialMediaPlatform {
 
     @Override
     public int getMostEndorsedPost() {
+        return 0;
         // TODO Auto-generated method stub
     }
 
