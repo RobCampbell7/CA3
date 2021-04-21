@@ -1,6 +1,5 @@
 package socialmedia;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +17,7 @@ public class SocialMedia implements SocialMediaPlatform {
     private ArrayList<Post> posts = new ArrayList<>();
     private int nextpid = 0;
     private int nextuid = 0;
+    private ArrayList<ArrayList<Comment>> orphanedComments = new ArrayList<>();
 
     public int finduid(String handle) {
         int id = -1;
@@ -79,52 +79,99 @@ public class SocialMedia implements SocialMediaPlatform {
 
 
     /**
-     * below are commented out alternative methods that allow for finding posts individually by id or a comment by id (specifically for the scenario if we find that we need a seperate function if we are returning a comment rather than a post
-	 * if we find we want to go this route we can somewhat easily make similar methods for endorsements as well as for the scenarios such as removing/deleting using these functions as a basis
-	 * i already have some idea how i would do this but i hesitate to make anymore right now incase we find it completely unnecessary
-	 * additionally at some point i wish to check to ensure that changing the array the loop is acting upon does indeed also reset the loop and not continue from the same element in the new array because otherwise we will have to change these functions accordingly to deal with this
+     * below are alternative methods that allow for finding posts individually by id or a comment by id or an endorsement
+     * i have made it so that we only need to call the universal fromID function and give it the right parameters to minimise code repitition in other functions
      */
-    /*
-public Post findPostFromID(String id) {
-		Post foundPost = new Post();
-		String[] idArr = id.split("-");
-		ArrayList<Post> postArr = posts;
-		for (Post post : postArr) {
-			if (post.id.equals(idArr[0])) {
-				foundPost = post;
-				break;
-			}
-		}
-		return foundPost;
-	}
+    public Post fromID(String type, String id, String action) {
+        String[] idArr = id.split("-");
+        if (action.equals("FIND")) {
+            if (type.equals("Post")) {
+                return findObjectFromID(idArr, type);
+            }
+            else if (type.equals("Comment")) {
+                return findObjectFromID(idArr, type);
+            }
+            else if (type.equals("Endorsement")) {
+                return findObjectFromID(idArr, type);
+            }
+        } else if (action.equals("DELETE")) {
+            if (type.equals("Post")) {
+                Post removepost = findObjectFromID(idArr, type);
+                orphanedComments.add(removepost.getComments());
+                posts.remove(removepost);
+            }
+            else if (type.equals("Comment")) {
+                orphanedComments.add(findObjectFromID(idArr, type).getComments());
+                String[] idArrImmediateParent = Arrays.copyOfRange(idArr, 0, idArr.length-1);
+                if (idArrImmediateParent.length == 1) {
+                    findObjectFromID(idArrImmediateParent, "Post").removecomment((Comment) findObjectFromID(idArr, type));
+                } else {
+                    findObjectFromID(idArrImmediateParent, type).removecomment((Comment) findObjectFromID(idArr, type));
+                }
+            }
+            else if (type.equals("Endorsement")) {
+                String[] idArrImmediateParent = Arrays.copyOfRange(idArr, 0, idArr.length-1);
+                if (idArrImmediateParent.length == 1) {
+                    findObjectFromID(idArrImmediateParent, "Post").removeendorsement((Endorsement) findObjectFromID(idArr, type));
+                } else {
+                    findObjectFromID(idArrImmediateParent, type).removeendorsement((Endorsement) findObjectFromID(idArr, type));
+                }
+            }
+        }
+        return null;
+    }
 
-	public Comment findCommentFromID(String id){
-		Post startingPost = findPostFromID(id);
-		Comment foundComment = new Comment();
-		String[] idArr = id.split("-");
-		String[] commentidArr = Arrays.copyOfRange(idArr, 1, idArr.length);
-		ArrayList<Comment> commentArr = startingPost.getComments();
+    public Post findPostFromID(String[] idArr) {
+        for (Post post : posts) {
+            if (post.id().equals(idArr[0])) {
+                return post;
+            }
+        }
+        return null;
+    }
 
-		for (String s : commentidArr){
-			for (Comment commment : commentArr){
-				//comparing each post id to the currently selected part of the parent id
-				if (commment.id().equals(s)){
-					//if the ids match checks
-					if (s.equals(commentidArr[-1])){
-						//if this is the last part of parent id then it collects the requested comment
-						foundComment = commment;
-						// then returns the comment this also breaks all loops and exits the function
-						return foundComment;
-					} else{
-						//change the array of comments to the array of the selected comment's comments
-						commentArr = commment.getComments();
-					}
-				}
-			}
-		}
-		return foundComment;
-	}
-     */
+    public Post findObjectFromID(String[] idArr, String type) {
+        if (type.equals("Post")) {
+            return findPostFromID(idArr);
+        } else if (type.equals("Endorsement") && idArr.length == 2) {
+            return findEndorsementFromID(findPostFromID(idArr).getEndorsements(), idArr);
+        } else {
+            return findObject(idArr, findPostFromID(idArr).getComments(), type);
+        }
+    }
+
+    public Post findObject(String[] idArr, ArrayList<Comment> commentArr, String type) {
+        //remove the first member of the array so that we can search using the next member
+        String[] commentidArr = Arrays.copyOfRange(idArr, 1, idArr.length);
+        for (Comment commment : commentArr) {
+            //comparing each post id to the currently selected part of the parent id
+            if (commment.id().equals(commentidArr[0])) {
+                //if the ids match checks
+                if (commentidArr.length == 1) {
+                    //if this is the last part of parent id then it returns the comment this also breaks the loop and exits the function(s)
+                    return commment;
+                } else  if (commentidArr.length == 2 && type.equals("Endorsement")) {
+                    return findEndorsementFromID(commment.getEndorsements(), commentidArr);
+                } else {
+                    //recursively call the function to search the matching comment's array of comments
+                    return findObject(commentidArr, commment.getComments(), type);
+                }
+            }
+        }
+        return null;
+    }
+
+    public Post findEndorsementFromID(ArrayList<Endorsement> endorseArr, String[] idArr) {
+        //remove the first member of the array so that we can search using the next member
+        String[] endorsementidArr = Arrays.copyOfRange(idArr, 1, idArr.length);
+        for (Endorsement endorsement : endorseArr) {
+            if (endorsement.id().equals(endorsementidArr[0])) {
+                return endorsement;
+            }
+        }
+        return null;
+    }
+
 
     @Override
     public String createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
@@ -223,13 +270,13 @@ public Post findPostFromID(String id) {
     }
 
     @Override
-    public String createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
+    public int createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
         //maybe add error msg and repeat later if needed
         String newpostuid = Integer.toString(finduid(handle));
         if (message.length() > 100) {
-            return "0";
+            return 0;
         } else if (newpostuid.equals("-1")) {
-            return "0";
+            return 0;
         } else {
             Post newpost = new Post();
             String newpostid = Integer.toString(nextpid);
@@ -238,22 +285,22 @@ public Post findPostFromID(String id) {
             newpost.setuID(newpostuid);
             newpost.setContent(message);
             posts.add(newpost);
-            return newpostid;
+            return Integer.parseInt(newpostid);
         }
     }
 
     @Override
-    public String endorsePost(String handle, int id)
+    public int endorsePost(String handle, int id)
             throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException {
         String newpostuid = Integer.toString(finduid(handle));
         String parentid = Integer.toString(id);
         Post post = findPostFromID(parentid);
         if (newpostuid.equals("-1")) {
             // Will call HandleNotRecognisedException
-            return "0";
+            return 0;
         } else if (post.exists()) {
             // Will call PostIDNotRecognisedException
-            return "0";
+            return 0;
         } else {
             String newID = Integer.toString(post.getNextEID());
             int incrementEID = post.getNextEID() + 1;
@@ -264,7 +311,7 @@ public Post findPostFromID(String id) {
             newEnd.setParentID(parentid);
             newEnd.setuID(newpostuid);
             post.addendorsement(newEnd);
-            return newID;
+            return Integer.parseInt(newID);
         }
     }
 
@@ -287,7 +334,7 @@ public Post findPostFromID(String id) {
             post.setNextCID(incrementCID);
 
             Comment newcomment = new Comment();
-            newcomment.setparentID(id);
+            newcomment.setParentID(id);
             newcomment.setid(newCID);
             newcomment.setContent(message);
 
@@ -299,7 +346,9 @@ public Post findPostFromID(String id) {
     @Override
     public void deletePost(int id) throws PostIDNotRecognisedException {
         // TODO Auto-generated method stub
-
+        String strID = Integer.toString(id);
+        fromID("Post", strID, "DELETE");
+        
     }
 
     @Override
