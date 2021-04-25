@@ -3,6 +3,7 @@ package socialmedia;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Scanner;
 
 /**
  * BadSocialMedia is a minimally compiling, but non-functioning implementor of
@@ -83,7 +84,12 @@ public class SocialMedia implements SocialMediaPlatform {
      * i have made it so that we only need to call the universal fromID function and give it the right parameters to minimise code repitition in other functions
      */
     public Post fromID(String type, String id, String action) {
-        String[] idArr = id.split("-");
+        String[] idArr;
+        if (id.contains("-")) {
+            idArr = id.split("-");
+        } else {
+            idArr = new String[]{id};
+        }
         if (action.equals("FIND")) {
             if (type.equals("Post")) {
                 return findObjectFromID(idArr, type);
@@ -362,14 +368,70 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
     public String showIndividualPost(int id) throws PostIDNotRecognisedException {
         // TODO Auto-generated method stub
-        return null;
+        //if we are allowed to we should change every int id input to a string input and then we can put in if statments that check whether
+        //the string contains a "-" to determine whether we are searching for a comment or a post this would
+        //let us use showIndivPost and show PostChildren details and similar post sorting methods on comments as well as deletion methods
+        //if it turns out we need to be able to apply any of these methods to comments for now though ive created the basic structures of these methods
+        String strID = Integer.toString(id);
+        Post indivPost = fromID("Post", strID, "FIND");
+        Account postAccount = findAccountFromID(Integer.parseInt(indivPost.uID()));
+        String PostDetails = "\n<pre>\nID: " + indivPost.id() + "\nAccount: " + postAccount.getHandle() + "\nNo. endorsements: " + indivPost.getNumEndorsements() + " | No. comments: " + indivPost.getNumComments() + "\n" + indivPost.content() + "\n</pre>";
+        return PostDetails;
     }
 
     @Override
     public StringBuilder showPostChildrenDetails(int id)
             throws PostIDNotRecognisedException, NotActionablePostException {
         // TODO Auto-generated method stub
-        return null;
+        String strID = Integer.toString(id);
+        Post parentPost = fromID("Post", strID, "FIND");
+        String parentPostDetails = showIndividualPost(id).replaceAll("\n</pre>$", "");
+        StringBuilder postChildrenDetails = new StringBuilder();
+        postChildrenDetails.append(parentPostDetails);
+        if (parentPost.getNumComments() != 0) {
+            String strPostChildren = recursivePostChildren(1, parentPost.getComments()).toString();
+            postChildrenDetails.append(strPostChildren);
+        }
+        postChildrenDetails.append("\n</pre>\n");
+        return postChildrenDetails;
+    }
+
+    public StringBuilder recursivePostChildren(int indentSize, ArrayList<Comment> postChildren) throws PostIDNotRecognisedException {
+        StringBuilder indentString = new StringBuilder("\n");
+        int indentIncrement = 0;
+        while (indentIncrement < indentSize) {
+            indentIncrement++;
+            indentString.append("\t");
+        }
+        String strIndents = indentString.toString();
+        String strFirstLineFormat = strIndents.replaceAll("\t$", "|");
+        String strSecondLineFormat = strIndents.replaceAll("\t$", "| > ");
+        String strFirstLinesFormat = strFirstLineFormat + strSecondLineFormat;
+        StringBuilder postChildrenDetails = new StringBuilder();
+        for (Comment comment : postChildren) {
+            String parentPostDetails = showIndividualPost(Integer.parseInt(comment.id())).replaceAll("\n</pre>$", "");
+            parentPostDetails = parentPostDetails.replaceFirst("\n<pre>\n", strFirstLinesFormat);
+            Scanner linescanner = new Scanner(parentPostDetails);
+            int scannerlinetracker = 0;
+            while (linescanner.hasNextLine()) {
+                String thisline = linescanner.nextLine();
+                if (scannerlinetracker <= 1) {
+                    scannerlinetracker += 1;
+                    linescanner.close();
+                    continue;
+                }
+                scannerlinetracker += 1;
+                String indentedthisline = strIndents.replaceAll("\n", "") + thisline;
+                parentPostDetails = parentPostDetails.replaceFirst(thisline, indentedthisline);
+            }
+            postChildrenDetails.append(parentPostDetails);
+            if (comment.getNumComments() != 0) {
+                ArrayList<Comment> thisCommentChildren = comment.getComments();
+                int newindentSize = indentSize + 1;
+                postChildrenDetails.append(recursivePostChildren(newindentSize, thisCommentChildren));
+            }
+        }
+        return postChildrenDetails;
     }
 
     @Override
