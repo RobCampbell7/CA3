@@ -7,11 +7,12 @@ public class Platform implements Serializable {
 
     private ArrayList<Account> accounts = new ArrayList<>();
     private ArrayList<Post> posts = new ArrayList<>();
-    private ArrayList<ArrayList<Comment>> orphanedComments = new ArrayList<>();
-    private int nextpid = 0;
+    private ArrayList<Comment> orphanedComments = new ArrayList<>();
+    private int nextid = 0;
     private int nextuid = 0;
 
-    public Platform() {}
+    public Platform() {
+    }
 
 
     public ArrayList<Account> getAccounts() {
@@ -30,20 +31,20 @@ public class Platform implements Serializable {
         this.posts = posts;
     }
 
-    public ArrayList<ArrayList<Comment>> getOrphanedComments() {
+    public ArrayList<Comment> getOrphanedComments() {
         return orphanedComments;
     }
 
-    public void setOrphanedComments(ArrayList<ArrayList<Comment>> orphanedComments) {
+    public void setOrphanedComments(ArrayList<Comment> orphanedComments) {
         this.orphanedComments = orphanedComments;
     }
 
-    public int getNextpid() {
-        return nextpid;
+    public int getNextid() {
+        return nextid;
     }
 
-    public void setNextpid(int nextpid) {
-        this.nextpid = nextpid;
+    public void setNextid(int nextpid) {
+        this.nextid = nextpid;
     }
 
     public int getNextuid() {

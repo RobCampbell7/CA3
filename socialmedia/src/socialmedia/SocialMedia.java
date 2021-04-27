@@ -2,7 +2,6 @@ package socialmedia;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 
 /**
@@ -16,9 +15,9 @@ public class SocialMedia implements SocialMediaPlatform {
 
     private ArrayList<Account> accounts = new ArrayList<>();
     private ArrayList<Post> posts = new ArrayList<>();
-    private int nextpid = 0;
+    private int nextID = 1;
     private int nextuid = 0;
-    private ArrayList<ArrayList<Comment>> orphanedComments = new ArrayList<>();
+    private ArrayList<Comment> orphanedComments = new ArrayList<>();
 
     public int finduid(String handle) {
         int id = -1;
@@ -53,126 +52,42 @@ public class SocialMedia implements SocialMediaPlatform {
         return unique;
     }
 
-    // public Post findPostFromID(String id) {
-    //     Post foundPost = new Post();
-    //     String[] idArr = id.split("-");
-    //     ArrayList<Post> postArr = posts;
 
-    //     for (String s : idArr) {
-    //         for (Post post : postArr) {
-    //             //comparing each post id to the currently selected part of the parent id
-    //             if (post.id().equals(s)) {
-    //                 //if the ids match checks
-    //                 if (s.equals(idArr[-1])) {
-    //                     //if this is the last part of parent id then it collects the requested post
-    //                     foundPost = post;
-    //                     // then returns the post this also breaks all loops and exits the function
-    //                     return foundPost;
-    //                 } else {
-    //                     //change the array of posts to the array of comments inside the found matching post
-    //                     postArr = post.getComments();
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     return foundPost;
-    // }
-
-
-    /**
-     * below are alternative methods that allow for finding posts individually by id or a comment by id or an endorsement
-     * i have made it so that we only need to call the universal fromID function and give it the right parameters to minimise code repitition in other functions
-     */
-    public Post fromID(String type, String id, String action) {
-        String[] idArr;
-        if (id.contains("-")) {
-            idArr = id.split("-");
-        } else {
-            idArr = new String[]{id};
-        }
-        if (action.equals("FIND")) {
-            if (type.equals("Post")) {
-                return findObjectFromID(idArr, type);
-            }
-            else if (type.equals("Comment")) {
-                return findObjectFromID(idArr, type);
-            }
-            else if (type.equals("Endorsement")) {
-                return findObjectFromID(idArr, type);
-            }
-        } else if (action.equals("DELETE")) {
-            if (type.equals("Post")) {
-                Post removepost = findObjectFromID(idArr, type);
-                orphanedComments.add(removepost.getComments());
-                posts.remove(removepost);
-            }
-            else if (type.equals("Comment")) {
-                orphanedComments.add(findObjectFromID(idArr, type).getComments());
-                String[] idArrImmediateParent = Arrays.copyOfRange(idArr, 0, idArr.length-1);
-                if (idArrImmediateParent.length == 1) {
-                    findObjectFromID(idArrImmediateParent, "Post").removecomment((Comment) findObjectFromID(idArr, type));
-                } else {
-                    findObjectFromID(idArrImmediateParent, type).removecomment((Comment) findObjectFromID(idArr, type));
-                }
-            }
-            else if (type.equals("Endorsement")) {
-                String[] idArrImmediateParent = Arrays.copyOfRange(idArr, 0, idArr.length-1);
-                if (idArrImmediateParent.length == 1) {
-                    findObjectFromID(idArrImmediateParent, "Post").removeendorsement((Endorsement) findObjectFromID(idArr, type));
-                } else {
-                    findObjectFromID(idArrImmediateParent, type).removeendorsement((Endorsement) findObjectFromID(idArr, type));
-                }
-            }
-        }
-        return null;
-    }
-
-    public Post findPostFromID(String[] idArr) {
+    public void deleteFromID(int id) {
+        Post thispost = findFromID(id);
+        posts.remove(thispost);
+        orphanComment((Comment) thispost);
         for (Post post : posts) {
-            if (post.id().equals(idArr[0])) {
+            if (post.id() == thispost.getParentID() && thispost.getParentID() != 0) {
+                orphanedComments.add((Comment) thispost);
+                post.removecomment((Comment) thispost);
+            }
+        }
+    }
+
+    public void orphanComment(Comment thisComment) {
+        for (Comment comment : thisComment.getComments()) {
+            posts.remove(comment);
+            orphanedComments.add(comment);
+            orphanComment(comment);
+        }
+    }
+
+    public void deleteEndFromID(int id) {
+        Endorsement thisEnd = (Endorsement) findFromID(id);
+        posts.remove(thisEnd);
+        for (Post post : posts) {
+            if (post.id() == thisEnd.getParentID()) {
+                post.removeendorsement(thisEnd);
+                findAccountFromID(post.uID()).removeNumEndorsements();
+            }
+        }
+    }
+
+    public Post findFromID(int id) {
+        for (Post post : posts) {
+            if (post.id() == id) {
                 return post;
-            }
-        }
-        return null;
-    }
-
-    public Post findObjectFromID(String[] idArr, String type) {
-        if (type.equals("Post")) {
-            return findPostFromID(idArr);
-        } else if (type.equals("Endorsement") && idArr.length == 2) {
-            return findEndorsementFromID(findPostFromID(idArr).getEndorsements(), idArr);
-        } else {
-            return findObject(idArr, findPostFromID(idArr).getComments(), type);
-        }
-    }
-
-    public Post findObject(String[] idArr, ArrayList<Comment> commentArr, String type) {
-        //remove the first member of the array so that we can search using the next member
-        String[] commentidArr = Arrays.copyOfRange(idArr, 1, idArr.length);
-        for (Comment commment : commentArr) {
-            //comparing each post id to the currently selected part of the parent id
-            if (commment.id().equals(commentidArr[0])) {
-                //if the ids match checks
-                if (commentidArr.length == 1) {
-                    //if this is the last part of parent id then it returns the comment this also breaks the loop and exits the function(s)
-                    return commment;
-                } else  if (commentidArr.length == 2 && type.equals("Endorsement")) {
-                    return findEndorsementFromID(commment.getEndorsements(), commentidArr);
-                } else {
-                    //recursively call the function to search the matching comment's array of comments
-                    return findObject(commentidArr, commment.getComments(), type);
-                }
-            }
-        }
-        return null;
-    }
-
-    public Post findEndorsementFromID(ArrayList<Endorsement> endorseArr, String[] idArr) {
-        //remove the first member of the array so that we can search using the next member
-        String[] endorsementidArr = Arrays.copyOfRange(idArr, 1, idArr.length);
-        for (Endorsement endorsement : endorseArr) {
-            if (endorsement.id().equals(endorsementidArr[0])) {
-                return endorsement;
             }
         }
         return null;
@@ -279,102 +194,106 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
     public String showAccount(String handle) throws HandleNotRecognisedException {
         // TODO Auto-generated method stub
-        return null;
+        int thisUID = finduid(handle);
+        Account thisaccount = new Account();
+        for (Account account : accounts) {
+            if (thisUID == account.getUID()) {
+                thisaccount = account;
+                break;
+            }
+        }
+        String stringFormat = "<pre>\nID: " + thisaccount.getUID() + "\nHandle: " + thisaccount.getHandle() + "\nDescription: " + thisaccount.getDescription() + "\nPost counts: " + thisaccount.getNumPosts() + "\nEndorse count: " + thisaccount.getNumEndorsements() + "\n</pre>";
+        return stringFormat;
     }
 
     @Override
     public int createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
         //maybe add error msg and repeat later if needed
-        String newpostuid = Integer.toString(finduid(handle));
+        int newpostuid = finduid(handle);
         if (message.length() > 100) {
             return 0;
-        } else if (newpostuid.equals("-1")) {
+        } else if (newpostuid == -1) {
             return 0;
         } else {
             Post newpost = new Post();
-            String newpostid = Integer.toString(nextpid);
-            nextpid += 1;
+            int newpostid = nextID;
+            nextID += 1;
             newpost.setid(newpostid);
             newpost.setuID(newpostuid);
             newpost.setContent(message);
             posts.add(newpost);
-            return Integer.parseInt(newpostid);
+            return newpostid;
         }
     }
 
     @Override
     public int endorsePost(String handle, int id)
             throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException {
-        String newpostuid = Integer.toString(finduid(handle));
-        String parentid = Integer.toString(id);
-        Post post = fromID("Post", parentid, "FIND");
+        int newpostuid = finduid(handle);
+        Post post = findFromID(id);
+        Account endorsedAccount = findAccountFromID(post.uID());
 
-        if (newpostuid.equals("-1")) {
+        if (newpostuid == -1) {
             // Will call HandleNotRecognisedException
             return 0;
-        } else if (post.exists()) {
+        } else if (post == null) {
             // Will call PostIDNotRecognisedException
             return 0;
         } else {
-            String newID = Integer.toString(post.getNextEID());
-            int incrementEID = post.getNextEID() + 1;
-            post.setNextEID(incrementEID);
+            int newID = nextID;
+            nextID += 1;
 
             Endorsement newEnd = new Endorsement();
             newEnd.setid(newID);
-            newEnd.setParentID(parentid);
+            newEnd.setParentID(id);
             newEnd.setuID(newpostuid);
+            newEnd.setEnd(true);
             post.addendorsement(newEnd);
-            return Integer.parseInt(newID);
+            posts.add(newEnd);
+            endorsedAccount.addNumEndorsements();
+            return newID;
         }
     }
 
     @Override
-    public String commentPost(String handle, String id, String message) throws HandleNotRecognisedException,
+    public int commentPost(String handle, int id, String message) throws HandleNotRecognisedException,
             PostIDNotRecognisedException, NotActionablePostException, InvalidPostException {
         // TODO Auto-generated method stub
         // should add comment to list within post object, as well as total post list.
-        String newpostuid = Integer.toString(finduid(handle));
-        Post post = fromID("Post", id, "FIND");
+        int newpostuid = finduid(handle);
+        Post post = findFromID(id);
         if (message.length() > 100) {
-            return "0";
-        } else if (newpostuid.equals("-1")) {
-            return "0";
-        } else if (post.exists()) {
-            return "0";
+            return 0;
+        } else if (newpostuid == -1) {
+            return 0;
+        } else if (post == null) {
+            return 0;
         } else {
-            String newCID = Integer.toString(post.getNextCID());
-            int incrementCID = post.getNextCID() + 1;
-            post.setNextCID(incrementCID);
+            int newID = nextID;
+            nextID += 1;
 
             Comment newcomment = new Comment();
             newcomment.setParentID(id);
-            newcomment.setid(newCID);
+            newcomment.setid(newID);
             newcomment.setContent(message);
-
+            newcomment.setuID(newpostuid);
             post.addcomment(newcomment);
-            return newCID;
+            posts.add(newcomment);
+            return newID;
         }
     }
 
     @Override
     public void deletePost(int id) throws PostIDNotRecognisedException {
         // TODO Auto-generated method stub
-        String strID = Integer.toString(id);
-        fromID("Post", strID, "DELETE");
-        
+        deleteFromID(id);
     }
 
     @Override
     public String showIndividualPost(int id) throws PostIDNotRecognisedException {
         // TODO Auto-generated method stub
-        //if we are allowed to we should change every int id input to a string input and then we can put in if statments that check whether
-        //the string contains a "-" to determine whether we are searching for a comment or a post this would
-        //let us use showIndivPost and show PostChildren details and similar post sorting methods on comments as well as deletion methods
-        //if it turns out we need to be able to apply any of these methods to comments for now though ive created the basic structures of these methods
-        String strID = Integer.toString(id);
-        Post indivPost = fromID("Post", strID, "FIND");
-        Account postAccount = findAccountFromID(Integer.parseInt(indivPost.uID()));
+        Post indivPost = findFromID(id);
+        Account postAccount = findAccountFromID(indivPost.uID());
         String PostDetails = "\n<pre>\nID: " + indivPost.id() + "\nAccount: " + postAccount.getHandle() + "\nNo. endorsements: " + indivPost.getNumEndorsements() + " | No. comments: " + indivPost.getNumComments() + "\n" + indivPost.content() + "\n</pre>";
         return PostDetails;
     }
@@ -383,8 +302,7 @@ public class SocialMedia implements SocialMediaPlatform {
     public StringBuilder showPostChildrenDetails(int id)
             throws PostIDNotRecognisedException, NotActionablePostException {
         // TODO Auto-generated method stub
-        String strID = Integer.toString(id);
-        Post parentPost = fromID("Post", strID, "FIND");
+        Post parentPost = findFromID(id);
         String parentPostDetails = showIndividualPost(id).replaceAll("\n</pre>$", "");
         StringBuilder postChildrenDetails = new StringBuilder();
         postChildrenDetails.append(parentPostDetails);
@@ -409,7 +327,7 @@ public class SocialMedia implements SocialMediaPlatform {
         String strFirstLinesFormat = strFirstLineFormat + strSecondLineFormat;
         StringBuilder postChildrenDetails = new StringBuilder();
         for (Comment comment : postChildren) {
-            String parentPostDetails = showIndividualPost(Integer.parseInt(comment.id())).replaceAll("\n</pre>$", "");
+            String parentPostDetails = showIndividualPost(comment.id()).replaceAll("\n</pre>$", "");
             parentPostDetails = parentPostDetails.replaceFirst("\n<pre>\n", strFirstLinesFormat);
             Scanner linescanner = new Scanner(parentPostDetails);
             int scannerlinetracker = 0;
@@ -451,7 +369,9 @@ public class SocialMedia implements SocialMediaPlatform {
         // TODO Auto-generated method stub
         int postNo = 0;
         for (Post post : posts) {
-            postNo += 1;
+            if (post.getParentID() == 0) {
+                postNo += 1;
+            }
         }
         return postNo;
     }
@@ -462,31 +382,11 @@ public class SocialMedia implements SocialMediaPlatform {
         int endorsementNo = 0;
 
         for (Post post : posts) {
-            if (post != null) {
-                for (Endorsement e : post.getEndorsements()) {
-                    if (e != null) {
-                        endorsementNo += 1;
-                    }
-                }
-            }
+            endorsementNo += post.getNumEndorsements();
         }
         return endorsementNo;
     }
 
-    public int countChildren(Post post) {
-        int commentNo = 1;
-        //changed this it now says if the post in question has comments
-        if (post.getComments().size() != 0) {
-            // then for each comment in that post's array of comments
-            for (Comment c : post.getComments()) {
-                if (c != null) {
-                    //recursively add to the commentNo the number of comments to the current comment if that comment has no children this will just be 1
-                    commentNo += countChildren(c);
-                }
-            }
-        }
-        return commentNo;
-    }
 
     @Override
     public int getTotalCommentPosts() {
@@ -494,23 +394,37 @@ public class SocialMedia implements SocialMediaPlatform {
         int commentNo = 0;
 
         for (Post post : posts) {
-            if (post != null) {
-                commentNo += countChildren(post);
-            }
+            commentNo += post.getNumComments();
         }
         return commentNo;
     }
 
     @Override
     public int getMostEndorsedPost() {
-        return 0;
+        int highestEnd = 0;
+        Post mostEnd = new Post();
+        for (Post post : posts) {
+            if (post.getNumEndorsements() > highestEnd) {
+                mostEnd = post;
+                highestEnd = post.getNumEndorsements();
+            }
+        }
+        return mostEnd.id();
         // TODO Auto-generated method stub
     }
 
     @Override
     public int getMostEndorsedAccount() {
         // TODO Auto-generated method stub
-        return 0;
+        int highestEnd = 0;
+        Account mostEnd = new Account();
+        for (Account account : accounts) {
+            if (account.getNumEndorsements() > highestEnd) {
+                mostEnd = account;
+                highestEnd = account.getNumEndorsements();
+            }
+        }
+        return mostEnd.getUID();
     }
 
     @Override
@@ -520,7 +434,7 @@ public class SocialMedia implements SocialMediaPlatform {
         accounts = new ArrayList<>();
         orphanedComments = new ArrayList<>();
         nextuid = 0;
-        nextpid = 0;
+        nextID = 0;
 
     }
 
@@ -531,7 +445,7 @@ public class SocialMedia implements SocialMediaPlatform {
         platform.setAccounts(accounts);
         platform.setPosts(posts);
         platform.setOrphanedComments(orphanedComments);
-        platform.setNextpid(nextpid);
+        platform.setNextid(nextID);
         platform.setNextuid(nextuid);
         //creating file for the platform
         String platformfilename = filename + ".ser";
@@ -559,7 +473,7 @@ public class SocialMedia implements SocialMediaPlatform {
         posts.addAll(loadedPlatform.getPosts());
         accounts.addAll(loadedPlatform.getAccounts());
         orphanedComments.addAll(loadedPlatform.getOrphanedComments());
-        nextpid = loadedPlatform.getNextpid();
+        nextID = loadedPlatform.getNextid();
         nextuid = loadedPlatform.getNextuid();
     }
 

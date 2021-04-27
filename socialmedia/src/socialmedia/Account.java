@@ -11,6 +11,8 @@ public class Account implements Serializable {
 
     private String description;
 
+    private int numEndorsements;
+
     public Account(int uID, String handle, String description){
         assert (description.length() < 100) : "Description is too long";
 
@@ -44,4 +46,17 @@ public class Account implements Serializable {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public int getNumEndorsements() {
+        return numEndorsements;
+    }
+
+    public void addNumEndorsements() {
+        this.numEndorsements += 1;
+    }
+
+    public void removeNumEndorsements() {
+        this.numEndorsements -= 1;
+    }
+
 }

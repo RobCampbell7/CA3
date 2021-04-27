@@ -6,13 +6,9 @@ import java.util.ArrayList;
 
 public class Post implements Serializable {
 
-    protected String id;
+    protected int id;
 
-    protected int nextCID = 0;
-
-    protected int nextEID = 0;
-
-    protected String uID;
+    protected int uID;
 
     protected String content;
 
@@ -26,9 +22,11 @@ public class Post implements Serializable {
 
     protected int numComments;
 
-    protected String parentID;
+    protected int parentID;
 
-    public Post(String id, String uID, String content) {
+    protected boolean isEnd = false;
+
+    public Post(int id, int uID, String content) {
         this.id = id;
         this.uID = uID;
         this.content = content;
@@ -37,11 +35,11 @@ public class Post implements Serializable {
     public Post() {
     }
 
-    public void setid(String id) {
+    public void setid(int id) {
         this.id = id;
     }
 
-    public void setuID(String uID) {
+    public void setuID(int uID) {
         this.uID = uID;
     }
 
@@ -53,11 +51,11 @@ public class Post implements Serializable {
         this.exists = exists;
     }
 
-    public String uID() {
+    public int uID() {
         return this.uID;
     }
 
-    public String id() {
+    public int id() {
         return this.id;
     }
 
@@ -109,22 +107,6 @@ public class Post implements Serializable {
         return this.endorsements;
     }
 
-    public int getNextCID() {
-        return this.nextCID;
-    }
-
-    public void setNextCID(int nextCID) {
-        this.nextCID = nextCID;
-    }
-
-    public int getNextEID() {
-        return this.nextEID;
-    }
-
-    public void setNextEID(int nextEID) {
-        this.nextEID = nextEID;
-    }
-
     public int getNumEndorsements() {
         return this.numEndorsements;
     }
@@ -142,12 +124,19 @@ public class Post implements Serializable {
     }
 
 
-    public String getParentID() {
+    public int getParentID() {
         return parentID;
     }
 
-    public void setParentID(String parentID) {
+    public void setParentID(int parentID) {
         this.parentID = parentID;
     }
 
+    public boolean isEnd() {
+        return isEnd;
+    }
+
+    public void setEnd(boolean end) {
+        isEnd = end;
+    }
 }
