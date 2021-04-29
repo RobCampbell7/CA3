@@ -8,7 +8,8 @@ import java.util.Scanner;
  * BadSocialMedia is a minimally compiling, but non-functioning implementor of
  * the SocialMediaPlatform interface.
  *
- * @author Diogo Pacheco
+ * @author Graham Faiola
+ * @author Robert Campbell
  * @version 1.0
  */
 public class SocialMedia implements SocialMediaPlatform {
