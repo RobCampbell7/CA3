@@ -17,7 +17,9 @@ public class SocialMedia implements SocialMediaPlatform {
     private ArrayList<Post> posts = new ArrayList<>();
     private int nextID = 1;
     private int nextuid = 0;
-    private ArrayList<Comment> orphanedComments = new ArrayList<>();
+    private String orphanMessage = "The original content was removed from the system and is no longer available.";
+    private Post genericEmptyPost = new Post(orphanMessage);
+
 
     public int finduid(String handle) {
         int id = -1;
@@ -53,11 +55,10 @@ public class SocialMedia implements SocialMediaPlatform {
     }
 
     public void orphanComment(Comment thisComment) {
-        findAccountFromID(thisComment.uID()).removeNumPosts();
         for (Comment comment : thisComment.getComments()) {
-            posts.remove(comment);
-            orphanedComments.add(comment);
-            orphanComment(comment);
+            comment.setOrphan(true);
+            comment.setGenericEmptyPost(genericEmptyPost);
+            comment.setParentID(0);
         }
     }
 
@@ -131,6 +132,15 @@ public class SocialMedia implements SocialMediaPlatform {
             throw new AccountIDNotRecognisedException("Account ID not recognised");
         } else {
             accounts.remove(oldAccount);
+            for (Post post : posts) {
+                if (id == post.uID()) {
+                    try {
+                        deletePost(post.id());
+                    } catch (PostIDNotRecognisedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     }
 
@@ -215,7 +225,7 @@ public class SocialMedia implements SocialMediaPlatform {
             nextID += 1;
             newpost.setid(newpostid);
             newpost.setuID(newpostuid);
-            findAccountFromID(newpostuid).removeNumPosts();
+            findAccountFromID(newpostuid).addNumPosts();
             newpost.setContent(message);
             posts.add(newpost);
             return newpostid;
@@ -243,6 +253,8 @@ public class SocialMedia implements SocialMediaPlatform {
             newEnd.setid(newID);
             newEnd.setParentID(id);
             newEnd.setuID(newpostuid);
+            newEnd.setEnd(true);
+            newEnd.setContent(post.content());
             post.addendorsement(newEnd);
             posts.add(newEnd);
 
@@ -262,7 +274,7 @@ public class SocialMedia implements SocialMediaPlatform {
             throw new HandleNotRecognisedException("Handle is not recognised");
         } else if (post == null) {
             throw new PostIDNotRecognisedException("Post ID is not recognised");
-        } else if (post.isEnd() == true) {
+        } else if (post.isEnd()) {
             throw new NotActionablePostException("This post cannot be commented on");
         } else if (message.length() > 100) {
             throw new InvalidPostException("Message length is greater than 100 characters");
@@ -290,14 +302,20 @@ public class SocialMedia implements SocialMediaPlatform {
         if (thispost == null) {
             throw new PostIDNotRecognisedException("Post ID is not recognised");
         } else {
-            posts.remove(thispost);
-            findAccountFromID(thispost.uID()).removeNumPosts();
-            orphanComment((Comment) thispost);
-            for (Post post : posts) {
-                if (post.id() == thispost.getParentID() && thispost.getParentID() != 0) {
-                    orphanedComments.add((Comment) thispost);
-                    post.removecomment((Comment) thispost);
+            if (!thispost.isEnd()) {
+                for (Endorsement end : thispost.getEndorsements()) {
+                    deleteEndFromID(end.id());
                 }
+                posts.remove(thispost);
+                findAccountFromID(thispost.uID()).removeNumPosts();
+                orphanComment((Comment) thispost);
+                for (Post post : posts) {
+                    if (post.id() == thispost.getParentID() && thispost.getParentID() != 0) {
+                        post.removecomment((Comment) thispost);
+                    }
+                }
+            } else if (thispost.isEnd) {
+                deleteEndFromID(thispost.id());
             }
         }
     }
@@ -395,7 +413,7 @@ public class SocialMedia implements SocialMediaPlatform {
         // TODO Auto-generated method stub
         int postNo = 0;
         for (Post post : posts) {
-            if (post.getParentID() == 0) {
+            if (post.getParentID() == 0 && !post.isOrphan()) {
                 postNo += 1;
             }
         }
@@ -407,8 +425,8 @@ public class SocialMedia implements SocialMediaPlatform {
         // TODO Auto-generated method stub
         int endorsementNo = 0;
 
-        for (Post post : posts) {
-            endorsementNo += post.getNumEndorsements();
+        for (Account account : accounts) {
+            endorsementNo += account.getNumEndorsements();
         }
         return endorsementNo;
     }
@@ -420,6 +438,9 @@ public class SocialMedia implements SocialMediaPlatform {
 
         for (Post post : posts) {
             commentNo += post.getNumComments();
+            if (post.isOrphan()) {
+                commentNo += 1;
+            }
         }
         return commentNo;
     }
@@ -457,7 +478,6 @@ public class SocialMedia implements SocialMediaPlatform {
         // TODO Auto-generated method stub
         posts = new ArrayList<>();
         accounts = new ArrayList<>();
-        orphanedComments = new ArrayList<>();
         nextuid = 0;
         nextID = 0;
 
@@ -469,9 +489,9 @@ public class SocialMedia implements SocialMediaPlatform {
         Platform platform = new Platform();
         platform.setAccounts(accounts);
         platform.setPosts(posts);
-        platform.setOrphanedComments(orphanedComments);
         platform.setNextid(nextID);
         platform.setNextuid(nextuid);
+        platform.setGenericEmptyPost(genericEmptyPost);
         // creating file for the platform
         String platformfilename = filename + ".ser";
         FileOutputStream storeplatform = new FileOutputStream(platformfilename);
@@ -496,9 +516,9 @@ public class SocialMedia implements SocialMediaPlatform {
         Platform loadedPlatform = (Platform) readPlatform.readObject();
         posts.addAll(loadedPlatform.getPosts());
         accounts.addAll(loadedPlatform.getAccounts());
-        orphanedComments.addAll(loadedPlatform.getOrphanedComments());
         nextID = loadedPlatform.getNextid();
         nextuid = loadedPlatform.getNextuid();
+        genericEmptyPost = loadedPlatform.getGenericEmptyPost();
     }
 
 }

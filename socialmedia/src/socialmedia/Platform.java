@@ -7,9 +7,9 @@ public class Platform implements Serializable {
 
     private ArrayList<Account> accounts = new ArrayList<>();
     private ArrayList<Post> posts = new ArrayList<>();
-    private ArrayList<Comment> orphanedComments = new ArrayList<>();
     private int nextid = 0;
     private int nextuid = 0;
+    private Post genericEmptyPost;
 
     public Platform() {
     }
@@ -31,14 +31,6 @@ public class Platform implements Serializable {
         this.posts = posts;
     }
 
-    public ArrayList<Comment> getOrphanedComments() {
-        return orphanedComments;
-    }
-
-    public void setOrphanedComments(ArrayList<Comment> orphanedComments) {
-        this.orphanedComments = orphanedComments;
-    }
-
     public int getNextid() {
         return nextid;
     }
@@ -53,5 +45,13 @@ public class Platform implements Serializable {
 
     public void setNextuid(int nextuid) {
         this.nextuid = nextuid;
+    }
+
+    public Post getGenericEmptyPost() {
+        return genericEmptyPost;
+    }
+
+    public void setGenericEmptyPost(Post genericEmptyPost) {
+        this.genericEmptyPost = genericEmptyPost;
     }
 }

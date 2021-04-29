@@ -26,6 +26,10 @@ public class Post implements Serializable {
 
     protected boolean isEnd = false;
 
+    protected boolean isOrphan;
+
+    protected Post genericEmptyPost;
+
     public Post(int id, int uID, String content) {
         this.id = id;
         this.uID = uID;
@@ -33,6 +37,15 @@ public class Post implements Serializable {
     }
 
     public Post() {
+    }
+
+    public Post(int id, String content) {
+        this.id = id;
+        this.content = content;
+    }
+
+    public Post(String content) {
+        this.content = content;
     }
 
     public void setid(int id) {
@@ -138,5 +151,21 @@ public class Post implements Serializable {
 
     public void setEnd(boolean end) {
         isEnd = end;
+    }
+
+    public boolean isOrphan() {
+        return isOrphan;
+    }
+
+    public void setOrphan(boolean orphan) {
+        isOrphan = orphan;
+    }
+
+    public Post getGenericEmptyPost() {
+        return genericEmptyPost;
+    }
+
+    public void setGenericEmptyPost(Post genericEmptyPost) {
+        this.genericEmptyPost = genericEmptyPost;
     }
 }
