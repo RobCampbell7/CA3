@@ -52,20 +52,8 @@ public class SocialMedia implements SocialMediaPlatform {
         return unique;
     }
 
-
-    public void deleteFromID(int id) {
-        Post thispost = findFromID(id);
-        posts.remove(thispost);
-        orphanComment((Comment) thispost);
-        for (Post post : posts) {
-            if (post.id() == thispost.getParentID() && thispost.getParentID() != 0) {
-                orphanedComments.add((Comment) thispost);
-                post.removecomment((Comment) thispost);
-            }
-        }
-    }
-
     public void orphanComment(Comment thisComment) {
+        findAccountFromID(thisComment.uID()).removeNumPosts();
         for (Comment comment : thisComment.getComments()) {
             posts.remove(comment);
             orphanedComments.add(comment);
@@ -93,15 +81,12 @@ public class SocialMedia implements SocialMediaPlatform {
         return null;
     }
 
-
     @Override
     public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
         if (handle.length() == 0 || handle.length() > 30 || handle.contains(" ")) {
-            // Will call InvalidHandleException
-            return 0;
+            throw new InvalidHandleException("Handle does not match criteria");
         } else if (!uniqueHandle(handle)) {
-            // Will call IllegalHandleException
-            return 0;
+            throw new IllegalHandleException("Handle is already in use");
         } else {
             Account newAccount = new Account();
             newAccount.setUID(nextuid);
@@ -117,11 +102,9 @@ public class SocialMedia implements SocialMediaPlatform {
     public int createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
         // TODO Auto-generated method stub
         if (handle.length() == 0 || handle.length() > 30 || handle.contains(" ")) {
-            // Will call InvalidHandleException
-            return 0;
+            throw new InvalidHandleException("Handle does not match criteria");
         } else if (!uniqueHandle(handle)) {
-            // Will call IllegalHandleException
-            return 0;
+            throw new IllegalHandleException("Handle is already in use");
         } else {
             Account newAccount = new Account();
             newAccount.setUID(nextuid);
@@ -144,7 +127,11 @@ public class SocialMedia implements SocialMediaPlatform {
                 break;
             }
         }
-        accounts.remove(oldAccount);
+        if (oldAccount == null) {
+            throw new AccountIDNotRecognisedException("Account ID not recognised");
+        } else {
+            accounts.remove(oldAccount);
+        }
     }
 
     @Override
@@ -152,6 +139,7 @@ public class SocialMedia implements SocialMediaPlatform {
         // TODO Auto-generated method stub
         int uid = finduid(handle);
         if (uid == -1) {
+            throw new HandleNotRecognisedException("Handle not recognised");
             // Raises HandleNotRecognisedException
         } else {
             Account oldAccount = null;
@@ -170,11 +158,11 @@ public class SocialMedia implements SocialMediaPlatform {
             throws HandleNotRecognisedException, IllegalHandleException, InvalidHandleException {
         int uid = finduid(oldHandle);
         if (uid == -1) {
-            // Will call HandleNotRecognisedException
+            throw new HandleNotRecognisedException("Handle not recognised");
         } else if (newHandle.length() == 0 || newHandle.length() > 30 || newHandle.contains(" ")) {
-            // Will call InvalidHandleException
+            throw new InvalidHandleException("Handle does not match criteria");
         } else if (!uniqueHandle(newHandle)) {
-            // Will call IllegalHandleException
+            throw new IllegalHandleException("Handle is already in use");
         } else {
             Account userToAlter = findAccountFromID(uid);
             userToAlter.setHandle(newHandle);
@@ -185,6 +173,7 @@ public class SocialMedia implements SocialMediaPlatform {
     public void updateAccountDescription(String handle, String description) throws HandleNotRecognisedException {
         int uid = finduid(handle);
         if (uid == -1) {
+            throw new HandleNotRecognisedException("Handle not recognised");
         } else {
             Account userToAlter = findAccountFromID(uid);
             userToAlter.setDescription(description);
@@ -195,31 +184,38 @@ public class SocialMedia implements SocialMediaPlatform {
     public String showAccount(String handle) throws HandleNotRecognisedException {
         // TODO Auto-generated method stub
         int thisUID = finduid(handle);
-        Account thisaccount = new Account();
-        for (Account account : accounts) {
-            if (thisUID == account.getUID()) {
-                thisaccount = account;
-                break;
+        if (thisUID == -1) {
+            throw new HandleNotRecognisedException("Handle not recognised");
+        } else {
+            Account thisaccount = new Account();
+            for (Account account : accounts) {
+                if (thisUID == account.getUID()) {
+                    thisaccount = account;
+                    break;
+                }
             }
+            String stringFormat = "<pre>\nID: " + thisaccount.getUID() + "\nHandle: " + thisaccount.getHandle()
+                    + "\nDescription: " + thisaccount.getDescription() + "\nPost counts: " + thisaccount.getNumPosts()
+                    + "\nEndorse count: " + thisaccount.getNumEndorsements() + "\n</pre>";
+            return stringFormat;
         }
-        String stringFormat = "<pre>\nID: " + thisaccount.getUID() + "\nHandle: " + thisaccount.getHandle() + "\nDescription: " + thisaccount.getDescription() + "\nPost counts: " + thisaccount.getNumPosts() + "\nEndorse count: " + thisaccount.getNumEndorsements() + "\n</pre>";
-        return stringFormat;
     }
 
     @Override
     public int createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
-        //maybe add error msg and repeat later if needed
+        // maybe add error msg and repeat later if needed
         int newpostuid = finduid(handle);
         if (message.length() > 100) {
-            return 0;
+            throw new InvalidPostException("This post is more than 100 characters long");
         } else if (newpostuid == -1) {
-            return 0;
+            throw new HandleNotRecognisedException("Handle not recognised");
         } else {
             Post newpost = new Post();
             int newpostid = nextID;
             nextID += 1;
             newpost.setid(newpostid);
             newpost.setuID(newpostuid);
+            findAccountFromID(newpostuid).removeNumPosts();
             newpost.setContent(message);
             posts.add(newpost);
             return newpostid;
@@ -234,11 +230,11 @@ public class SocialMedia implements SocialMediaPlatform {
         Account endorsedAccount = findAccountFromID(post.uID());
 
         if (newpostuid == -1) {
-            // Will call HandleNotRecognisedException
-            return 0;
+            throw new HandleNotRecognisedException("Handle is not recognised");
         } else if (post == null) {
-            // Will call PostIDNotRecognisedException
-            return 0;
+            throw new PostIDNotRecognisedException("Post ID is not recognised");
+        } else if (post.isEnd()) {
+            throw new NotActionablePostException("This post is an endorsement, not a comment or original post");
         } else {
             int newID = nextID;
             nextID += 1;
@@ -247,9 +243,9 @@ public class SocialMedia implements SocialMediaPlatform {
             newEnd.setid(newID);
             newEnd.setParentID(id);
             newEnd.setuID(newpostuid);
-            newEnd.setEnd(true);
             post.addendorsement(newEnd);
             posts.add(newEnd);
+
             endorsedAccount.addNumEndorsements();
             return newID;
         }
@@ -262,12 +258,14 @@ public class SocialMedia implements SocialMediaPlatform {
         // should add comment to list within post object, as well as total post list.
         int newpostuid = finduid(handle);
         Post post = findFromID(id);
-        if (message.length() > 100) {
-            return 0;
-        } else if (newpostuid == -1) {
-            return 0;
+        if (newpostuid == -1) {
+            throw new HandleNotRecognisedException("Handle is not recognised");
         } else if (post == null) {
-            return 0;
+            throw new PostIDNotRecognisedException("Post ID is not recognised");
+        } else if (post.isEnd() == true) {
+            throw new NotActionablePostException("This post cannot be commented on");
+        } else if (message.length() > 100) {
+            throw new InvalidPostException("Message length is greater than 100 characters");
         } else {
             int newID = nextID;
             nextID += 1;
@@ -279,6 +277,8 @@ public class SocialMedia implements SocialMediaPlatform {
             newcomment.setuID(newpostuid);
             post.addcomment(newcomment);
             posts.add(newcomment);
+
+            findAccountFromID(newpostuid).addNumPosts();
             return newID;
         }
     }
@@ -286,16 +286,35 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
     public void deletePost(int id) throws PostIDNotRecognisedException {
         // TODO Auto-generated method stub
-        deleteFromID(id);
+        Post thispost = findFromID(id);
+        if (thispost == null) {
+            throw new PostIDNotRecognisedException("Post ID is not recognised");
+        } else {
+            posts.remove(thispost);
+            findAccountFromID(thispost.uID()).removeNumPosts();
+            orphanComment((Comment) thispost);
+            for (Post post : posts) {
+                if (post.id() == thispost.getParentID() && thispost.getParentID() != 0) {
+                    orphanedComments.add((Comment) thispost);
+                    post.removecomment((Comment) thispost);
+                }
+            }
+        }
     }
 
     @Override
     public String showIndividualPost(int id) throws PostIDNotRecognisedException {
         // TODO Auto-generated method stub
         Post indivPost = findFromID(id);
-        Account postAccount = findAccountFromID(indivPost.uID());
-        String PostDetails = "\n<pre>\nID: " + indivPost.id() + "\nAccount: " + postAccount.getHandle() + "\nNo. endorsements: " + indivPost.getNumEndorsements() + " | No. comments: " + indivPost.getNumComments() + "\n" + indivPost.content() + "\n</pre>";
-        return PostDetails;
+        if (indivPost == null) {
+            throw new PostIDNotRecognisedException("Post ID is not recognised");
+        } else {
+            Account postAccount = findAccountFromID(indivPost.uID());
+            String PostDetails = "\n<pre>\nID: " + indivPost.id() + "\nAccount: " + postAccount.getHandle()
+                    + "\nNo. endorsements: " + indivPost.getNumEndorsements() + " | No. comments: "
+                    + indivPost.getNumComments() + "\n" + indivPost.content() + "\n</pre>";
+            return PostDetails;
+        }
     }
 
     @Override
@@ -303,18 +322,25 @@ public class SocialMedia implements SocialMediaPlatform {
             throws PostIDNotRecognisedException, NotActionablePostException {
         // TODO Auto-generated method stub
         Post parentPost = findFromID(id);
-        String parentPostDetails = showIndividualPost(id).replaceAll("\n</pre>$", "");
-        StringBuilder postChildrenDetails = new StringBuilder();
-        postChildrenDetails.append(parentPostDetails);
-        if (parentPost.getNumComments() != 0) {
-            String strPostChildren = recursivePostChildren(1, parentPost.getComments()).toString();
-            postChildrenDetails.append(strPostChildren);
+        if (parentPost == null) {
+            throw new PostIDNotRecognisedException("Post ID is not recognised");
+        } else if (parentPost.isEnd()) {
+            throw new NotActionablePostException("This post is an endorsement, not a comment or original post");
+        } else {
+            String parentPostDetails = showIndividualPost(id).replaceAll("\n</pre>$", "");
+            StringBuilder postChildrenDetails = new StringBuilder();
+            postChildrenDetails.append(parentPostDetails);
+            if (parentPost.getNumComments() != 0) {
+                String strPostChildren = recursivePostChildren(1, parentPost.getComments()).toString();
+                postChildrenDetails.append(strPostChildren);
+            }
+            postChildrenDetails.append("\n</pre>\n");
+            return postChildrenDetails;
         }
-        postChildrenDetails.append("\n</pre>\n");
-        return postChildrenDetails;
     }
 
-    public StringBuilder recursivePostChildren(int indentSize, ArrayList<Comment> postChildren) throws PostIDNotRecognisedException {
+    public StringBuilder recursivePostChildren(int indentSize, ArrayList<Comment> postChildren)
+            throws PostIDNotRecognisedException {
         StringBuilder indentString = new StringBuilder("\n");
         int indentIncrement = 0;
         while (indentIncrement < indentSize) {
@@ -387,7 +413,6 @@ public class SocialMedia implements SocialMediaPlatform {
         return endorsementNo;
     }
 
-
     @Override
     public int getTotalCommentPosts() {
         // TODO Auto-generated method stub
@@ -447,28 +472,27 @@ public class SocialMedia implements SocialMediaPlatform {
         platform.setOrphanedComments(orphanedComments);
         platform.setNextid(nextID);
         platform.setNextuid(nextuid);
-        //creating file for the platform
+        // creating file for the platform
         String platformfilename = filename + ".ser";
         FileOutputStream storeplatform = new FileOutputStream(platformfilename);
-        //creating the file writer
+        // creating the file writer
         ObjectOutputStream serialiseObject = new ObjectOutputStream(storeplatform);
-        //writing to file to store the platform
+        // writing to file to store the platform
         serialiseObject.writeObject(platform);
-        //close file
+        // close file
         serialiseObject.close();
         storeplatform.close();
-
     }
 
     @Override
     public void loadPlatform(String filename) throws IOException, ClassNotFoundException {
         // TODO Auto-generated method stub
-        //accessing the file
+        // accessing the file
         String filenameser = filename + ".ser";
         FileInputStream getPlatform = new FileInputStream(filenameser);
-        //creating file reader
+        // creating file reader
         ObjectInputStream readPlatform = new ObjectInputStream(getPlatform);
-        //reading object from file
+        // reading object from file
         Platform loadedPlatform = (Platform) readPlatform.readObject();
         posts.addAll(loadedPlatform.getPosts());
         accounts.addAll(loadedPlatform.getAccounts());
