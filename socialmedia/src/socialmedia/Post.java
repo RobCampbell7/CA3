@@ -1,9 +1,21 @@
 package socialmedia;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+/**
+ * Post is a class that encapsulates post functionality. An instance of the Post
+ * class can be commented on, Endorsed. Both of which are available in the comments
+ * and endorsements ArrayLists within the class.
+ * The Post stores the ID of the Account that posted it to allow for the Account
+ * records, e.g. numEndorsements, numCounts etc., can be kept consistent.
+ * 
+ * Post also implements serializable which allows for the Platform to be saved and
+ * loaded within the SocialMedia class.
+ * 
+ * @author Graham Faiola
+ * @author Robert Campbell
+ */
 public class Post implements Serializable {
 
     protected int id;
@@ -30,12 +42,22 @@ public class Post implements Serializable {
 
     protected Post genericEmptyPost;
 
+    /**
+     * Creates instance of the Post class using passed arguments.
+     * 
+     * @param id the id of the post
+     * @param uID the id of the account responsible for the post
+     * @param content the content of Post
+     */
     public Post(int id, int uID, String content) {
         this.id = id;
         this.uID = uID;
         this.content = content;
     }
 
+    /**
+     * Creates blank instance of the Post class
+     */
     public Post() {
     }
 
@@ -84,24 +106,44 @@ public class Post implements Serializable {
         this.exists = false;
     }
 
+    /**
+     * Adds a comment to the ArrayList comments parameter of Post class
+     * 
+     * @param newcomment Comment object to add to list
+     */
     public void addcomment(Comment newcomment) {
         this.comments.add(newcomment);
         int incrementcomment = this.getNumComments() + 1;
         this.setNumComments(incrementcomment);
     }
 
+    /**
+     * Removes a comment from the ArrayList comment parameter of Post class
+     * 
+     * @param oldcomment Comment object to remove from list of Comments
+     */
     public void removecomment(Comment oldcomment) {
         this.comments.remove(oldcomment);
         int incrementcomment = this.getNumComments() - 1;
         this.setNumComments(incrementcomment);
     }
 
+    /**
+     * Adds a specified endorsement to the endorsements ArrayList of Post class
+     * 
+     * @param newendorsement Endorsement object to append to the list of Endorsements
+     */
     public void addendorsement(Endorsement newendorsement) {
         this.endorsements.add(newendorsement);
         int incrementendorsement = this.getNumEndorsements() + 1;
         this.setNumEndorsements(incrementendorsement);
     }
 
+    /**
+     * Removes a specified endorsement to the endorsements ArrayList of Post class
+     * 
+     * @param oldendorsement Endorsement object to remove from the list of Endorsements
+     */
     public void removeendorsement(Endorsement oldendorsement) {
         this.endorsements.remove(oldendorsement);
         int incrementendorsement = this.getNumEndorsements() -1;
@@ -145,6 +187,12 @@ public class Post implements Serializable {
         this.parentID = parentID;
     }
 
+    /**
+     * Checks if the Post object is an Endorsement. As this means the post
+     * would not be endorseable or commentable.
+     * 
+     * @return if this post is an Endorsement
+     */
     public boolean isEnd() {
         return isEnd;
     }

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
- * BadSocialMedia is a minimally compiling, but non-functioning implementor of
+ * BadSocialMedia is a compiling, and fully-functioning implementor of
  * the SocialMediaPlatform interface.
  *
  * @author Graham Faiola
@@ -21,7 +21,13 @@ public class SocialMedia implements SocialMediaPlatform {
     private String orphanMessage = "The original content was removed from the system and is no longer available.";
     private Post genericEmptyPost = new Post(orphanMessage);
 
-
+    /**
+     * Returns the id of an account matching the specified handle parameter
+     * If no matching account can be found the function returns -1
+     * 
+     * @param handle handle of user
+     * @return id of user matching handle parameter
+     */
     public int finduid(String handle) {
         int id = -1;
         for (Account a : accounts) {
@@ -33,6 +39,14 @@ public class SocialMedia implements SocialMediaPlatform {
         return id;
     }
 
+    /**
+     * Searches through the accounts ArrayList to find an account with ID
+     * matching the passed id argument. If a matching account cannot be
+     * found then null is returned.
+     * 
+     * @param id id of the account to be searched for
+     * @return the account matching the id paramter
+     */
     public Account findAccountFromID(int id) {
         Account foundAccount = null;
         for (Account user : accounts) {
@@ -44,6 +58,14 @@ public class SocialMedia implements SocialMediaPlatform {
         return foundAccount;
     }
 
+    /**
+     * Checks if the handle specified is already used in the accounts ArrayList.
+     * If it is already used then a new account cannot be created with this
+     * handle.
+     * 
+     * @param handle
+     * @return true if handle is already used, otherwise false
+     */
     public boolean uniqueHandle(String handle) {
         boolean unique = true;
         for (Account user : accounts) {
@@ -55,6 +77,12 @@ public class SocialMedia implements SocialMediaPlatform {
         return unique;
     }
 
+    /**
+     * Called when a comments parent post is deleted and the comment is made
+     * an orphan. The comment's parent id is set to null
+     * 
+     * @param thisComment the comment object that's parent has been deleted
+     */
     public void orphanComment(Comment thisComment) {
         for (Comment comment : thisComment.getComments()) {
             comment.setOrphan(true);
@@ -63,6 +91,13 @@ public class SocialMedia implements SocialMediaPlatform {
         }
     }
 
+    /**
+     * Deletes an endorsement matching the specified id.
+     * This function makes sure the account of the post that was endorsed
+     * also has the number of recieved endorsements decremented.
+     * 
+     * @param id the id of the endorsement to delete.
+     */
     public void deleteEndFromID(int id) {
         Endorsement thisEnd = (Endorsement) findFromID(id);
         posts.remove(thisEnd);
@@ -74,6 +109,13 @@ public class SocialMedia implements SocialMediaPlatform {
         }
     }
 
+    /**
+     * Finds a post from a specified id within the posts ArrayList. If one
+     * is not found, then null is returned
+     * 
+     * @param id the id of the post to be searched for
+     * @return the Post object, or null if it cannot be found
+     */
     public Post findFromID(int id) {
         for (Post post : posts) {
             if (post.id() == id) {

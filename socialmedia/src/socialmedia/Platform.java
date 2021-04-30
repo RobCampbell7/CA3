@@ -3,6 +3,13 @@ package socialmedia;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+/**
+ * Platform is the serializable class that is used by the SocialMedia class
+ * to save and load the social media platform.
+ * 
+ * @author Graham Faiola
+ * @author Robert Campbell
+ */
 public class Platform implements Serializable {
 
     private ArrayList<Account> accounts = new ArrayList<>();
@@ -11,6 +18,9 @@ public class Platform implements Serializable {
     private int nextuid = 0;
     private Post genericEmptyPost;
 
+    /**
+     * Creates blank instance of the Platform class
+     */
     public Platform() {
     }
 
